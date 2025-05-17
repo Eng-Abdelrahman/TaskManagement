@@ -1,9 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Mapster;
+using Microsoft.Extensions.Logging;
 using TaskManagement.Application.Models;
 using TaskManagement.Application.Services.Interfases;
 using TaskManagement.Domain.Entities;
@@ -15,86 +11,104 @@ namespace TaskManagement.Application.Services.Implementation
     {
         private readonly IGenericRepository<TaskItem> _taskRepository;
         private readonly ILogger<TaskService> _logger;
+
         public TaskService(IGenericRepository<TaskItem> taskRepository, ILogger<TaskService> logger)
         {
             _taskRepository = taskRepository;
             _logger = logger;
         }
 
-
-        public async Task<long> CreateTask(TaskSaveDto dto)
+        public async Task<ServiceResponse<TaskDto>> CreateTask(TaskDto dto)
         {
             try
             {
-                var task = new TaskItem
-                {
-                    Title = dto.Title,
-                    Description = dto.Description,
-                    AssignedUserId = dto.AssignedUserId,
-                    StartDate = dto.StartDate,
-                    EndDate = dto.EndDate,
-                    IsCompleted = false
-                };
+                TaskItem task = dto.Adapt<TaskItem>();
                 await _taskRepository.AddAsync(task);
-                return task.Id;
+                int result = await _taskRepository.SaveChangesAsync();
+                return new ServiceResponse<TaskDto>() { Data = task.Adapt<TaskDto>(), Sucsess = result > 0, Message = "Task created successfully!" };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while creating task");
-                throw;
+                return default;
             }
         }
 
-        public async Task UpdateTask(TaskSaveDto dto)
+        public async Task<ServiceResponse<TaskDto>> UpdateTask(TaskDto dto)
         {
             try
             {
-                if (dto.Id == null) return;
-                var task = await _taskRepository.GetByIdAsync(dto.Id.Value);
+                if (dto.Id == null) return new ServiceResponse<TaskDto>() { Sucsess = false, Message = "Task not Found" };
+
+                TaskItem task = await _taskRepository.GetByIdAsync(dto.Id.Value);
                 if (task != null)
                 {
-                    task.Title = dto.Title;
-                    task.Description = dto.Description;
-                    task.StartDate = dto.StartDate;
-                    task.EndDate = dto.EndDate;
-                    await _taskRepository.UpdateAsync(task);
+                    dto.Adapt(task);
                 }
+
+                int result = await _taskRepository.SaveChangesAsync();
+
+                return new ServiceResponse<TaskDto>() { Data = task.Adapt<TaskDto>(), Sucsess = result > 0, Message = "Task updated successfully!" };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while updating task");
-                throw;
+                return default;
             }
         }
 
-        public async Task<List<TaskItem>> ListTasks()
+        public async Task<ServiceResponse<List<TaskDto>>> ListTasks()
         {
             try
             {
-                return await _taskRepository.GetAllAsync();
+                List<TaskItem> taskItems = await _taskRepository.GetAllAsync();
+
+                return new ServiceResponse<List<TaskDto>>() { Data = taskItems.Adapt<List<TaskDto>>(), Sucsess = taskItems.Count() > 0, };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while listing tasks");
-                throw;
+                return default;
             }
         }
 
-        public async Task MarkComplete(long id)
+        public async Task<ServiceResponse<TaskDto>> MarkComplete(long id)
         {
             try
             {
-                var task = await _taskRepository.GetByIdAsync(id);
+                TaskItem task = await _taskRepository.GetByIdAsync(id);
+                if (task == null) return new ServiceResponse<TaskDto>() { Sucsess = false, Message = "Task not Found" };
                 if (task != null)
                 {
                     task.IsCompleted = true;
-                    await _taskRepository.UpdateAsync(task);
                 }
+                int result = await _taskRepository.SaveChangesAsync();
+                return new ServiceResponse<TaskDto>() { Data = task.Adapt<TaskDto>(), Sucsess = result > 0, Message = "Task Completed successfully!" };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred while marking task as complete with ID: {id}");
-                throw;
+                _logger.LogError(ex, $"Error occurred while marking task as complete");
+                return default;
+            }
+        }
+
+        public async Task<ServiceResponse<bool>> DeleteTask(long id)
+        {
+            try
+            {
+                TaskItem task = await _taskRepository.GetByIdAsync(id);
+                if (task != null)
+                {
+                    _taskRepository.Delete(task);
+                }
+
+                int result = await _taskRepository.SaveChangesAsync();
+                return new ServiceResponse<bool>() { Data = (result > 0), Sucsess = result > 0, Message = "Task Deleted" };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred while deleting task");
+                return default;
             }
         }
     }

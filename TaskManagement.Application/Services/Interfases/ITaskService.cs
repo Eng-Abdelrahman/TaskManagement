@@ -1,12 +1,12 @@
 ﻿using TaskManagement.Application.Models;
-using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Application.Services.Interfases;
 
 public interface ITaskService
 {
-    Task<long> CreateTask(TaskSaveDto dto);
-    Task UpdateTask(TaskSaveDto dto);
-    Task<List<TaskItem>> ListTasks();
-    Task MarkComplete(long id);
+    Task<ServiceResponse<TaskDto>> CreateTask(TaskDto dto);
+    Task<ServiceResponse<TaskDto>> UpdateTask(TaskDto dto);
+    Task<ServiceResponse<List<TaskDto>>> ListTasks();
+    Task<ServiceResponse<TaskDto>> MarkComplete(long id);
+    Task<ServiceResponse<bool>> DeleteTask(long id);
 }

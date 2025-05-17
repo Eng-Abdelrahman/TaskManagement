@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TaskManagement.Application.Models;
-using TaskManagement.Application.Services.Implementation;
 using TaskManagement.Application.Services.Interfases;
 
 namespace TaskManagement.Api.Controllers
@@ -15,32 +14,36 @@ namespace TaskManagement.Api.Controllers
             _taskService = taskService;
         }
 
+        [Route("CreateTask")]
         [HttpPost]
-        public async Task<IActionResult> Create(TaskSaveDto dto)
+        public async Task<IActionResult> CreateTask(TaskDto dto)
         {
-            var id = await _taskService.CreateTask(dto);
-            return CreatedAtAction(nameof(Create), new { id }, dto);
+            ServiceResponse<TaskDto> response = await _taskService.CreateTask(dto);
+            return Ok(response);
         }
-
-        [HttpPut("Update")]
-        public async Task<IActionResult> Update(TaskSaveDto dto)
+        [HttpPut]
+        public async Task<IActionResult> Update(TaskDto dto)
         {
-            await _taskService.UpdateTask(dto);
-            return NoContent();
+            ServiceResponse<TaskDto> response = await _taskService.UpdateTask(dto);
+            return Ok(response);
         }
-
         [HttpGet]
         public async Task<IActionResult> List()
         {
-            var tasks = await _taskService.ListTasks();
-            return Ok(tasks);
+            ServiceResponse<List<TaskDto>> response =  await _taskService.ListTasks();
+            return Ok(response);
         }
-
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(long id)
+        {
+            ServiceResponse<bool> response = await _taskService.DeleteTask(id);
+            return Ok(response);
+        }
         [HttpPatch("{id}/complete")]
         public async Task<IActionResult> MarkComplete(long id)
         {
-            await _taskService.MarkComplete(id);
-            return NoContent();
+            ServiceResponse<TaskDto> response = await _taskService.MarkComplete(id);
+            return Ok(response);
         }
     }
 

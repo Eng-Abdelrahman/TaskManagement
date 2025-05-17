@@ -1,11 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using TaskManagement.Infrastructure.AppContext;
+
 
 namespace TaskManagement.Infrastructure.Repositories
 {
@@ -23,13 +19,11 @@ namespace TaskManagement.Infrastructure.Repositories
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(T entity)
+        public void Delete(T entity)
         {
             _dbSet.Remove(entity);
-            await _context.SaveChangesAsync();
         }
 
         public async Task<List<T>> FindAsync(Expression<Func<T, bool>> predicate)
@@ -47,10 +41,14 @@ namespace TaskManagement.Infrastructure.Repositories
             return await _dbSet.FindAsync(id);
         }
 
-        public async Task UpdateAsync(T entity)
+        public void Update(T entity)
         {
             _dbSet.Update(entity);
-            await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+           return await _context.SaveChangesAsync();
         }
     }
 }

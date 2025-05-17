@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TaskManagement.Application.Models
 {
-    public class TaskSaveDto
+    public class TaskDto
     {
         public long? Id { get; set; }
         public string Title { get; set; }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TaskManagement.Application;
 using TaskManagement.Application.Services.Implementation;
 using TaskManagement.Application.Services.Interfases;
 using TaskManagement.Infrastructure.AppContext;
@@ -19,7 +20,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+MappingConfig.RegisterMappings();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
